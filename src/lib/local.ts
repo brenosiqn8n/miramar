@@ -34,6 +34,8 @@ const publico = (m: MiembroLocal): Miembro => ({
   id: m.id,
   nombre: m.nombre,
   color: m.color,
+  es_admin: m.es_admin,
+  aprobado: m.aprobado,
   created_at: m.created_at,
 })
 
@@ -45,7 +47,7 @@ export function localReservas(): Reserva[] {
   return leer<Reserva>(K_RESERVAS)
 }
 
-export function localRegistrar(nombre: string, pin: string, color: string): Miembro {
+export function localRegistrar(nombre: string, pin: string, color: string, esAdmin: boolean): Miembro {
   const ms = leer<MiembroLocal>(K_MIEMBROS)
   if (ms.some((m) => m.nombre.toLowerCase() === nombre.trim().toLowerCase())) {
     throw new Error('Ese nombre ya existe')
@@ -53,11 +55,14 @@ export function localRegistrar(nombre: string, pin: string, color: string): Miem
   if (ms.some((m) => m.color.toLowerCase() === color.toLowerCase())) {
     throw new Error('Ese color ya está cogido')
   }
+  const primero = ms.length === 0
   const nuevo: MiembroLocal = {
     id: crypto.randomUUID(),
     nombre: nombre.trim(),
     color: color || '#0e7490',
     pin,
+    es_admin: primero ? esAdmin : false,
+    aprobado: primero, // first person auto-approved; others wait for admin
     created_at: new Date().toISOString(),
   }
   escribir(K_MIEMBROS, [...ms, nuevo])
@@ -70,6 +75,28 @@ export function localLogin(nombre: string, pin: string): Miembro {
   )
   if (!m) throw new Error('Nombre o PIN incorrectos')
   return publico(m)
+}
+
+function verificarAdmin(ms: MiembroLocal[], adminId: string, adminPin: string) {
+  const admin = ms.find((m) => m.id === adminId)
+  if (!admin || !admin.es_admin || admin.pin !== adminPin) throw new Error('Solo el admin puede hacer esto')
+}
+
+export function localAprobar(adminId: string, adminPin: string, miembroId: string): void {
+  const ms = leer<MiembroLocal>(K_MIEMBROS)
+  verificarAdmin(ms, adminId, adminPin)
+  const m = ms.find((x) => x.id === miembroId)
+  if (m) m.aprobado = true
+  escribir(K_MIEMBROS, ms)
+}
+
+export function localRechazar(adminId: string, adminPin: string, miembroId: string): void {
+  const ms = leer<MiembroLocal>(K_MIEMBROS)
+  verificarAdmin(ms, adminId, adminPin)
+  escribir(
+    K_MIEMBROS,
+    ms.filter((x) => x.id !== miembroId || x.es_admin),
+  )
 }
 
 export function localRenombrar(id: string, pin: string, nuevo: string): Miembro {

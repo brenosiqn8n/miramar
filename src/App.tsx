@@ -8,6 +8,9 @@ import { FormReserva } from './components/FormReserva'
 import { Reservas } from './components/Reservas'
 import { Historial } from './components/Historial'
 import { EditarNombre } from './components/EditarNombre'
+import { Solicitudes } from './components/Solicitudes'
+import { listarMiembros } from './lib/auth'
+import { useEffect } from 'react'
 
 export default function App() {
   return <Puerta />
@@ -16,13 +19,70 @@ export default function App() {
 function Puerta() {
   const { miembro } = useSesion()
   if (!miembro) return <Login />
+  if (!miembro.aprobado) return <Pendiente />
   return <Principal />
+}
+
+function Pendiente() {
+  const { miembro, entrar, salir } = useSesion()
+  const [comprobando, setComprobando] = useState(false)
+  const [aviso, setAviso] = useState<string | null>(null)
+
+  async function comprobar() {
+    if (!miembro) return
+    setComprobando(true)
+    setAviso(null)
+    try {
+      const ms = await listarMiembros()
+      const yo = ms.find((m) => m.id === miembro.id)
+      if (yo?.aprobado) entrar(yo)
+      else setAviso('Todavía no. El admin aún no te ha aprobado.')
+    } finally {
+      setComprobando(false)
+    }
+  }
+
+  // Auto-check periodically so it unlocks without a manual tap.
+  useEffect(() => {
+    const id = setInterval(comprobar, 15000)
+    return () => clearInterval(id)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  return (
+    <div className="min-h-dvh grid place-items-center px-6 text-center">
+      <div className="max-w-sm">
+        <h1 className="font-display text-4xl text-ink mb-3">Casi está</h1>
+        <p className="text-ink-soft mb-1">
+          Hola <b style={{ color: miembro?.color }}>{miembro?.nombre}</b>. Tu cuenta está creada y
+          esperando el visto bueno del administrador.
+        </p>
+        <p className="text-sm text-muted mb-6">Avísale para que te apruebe. Se desbloquea solo al aceptarte.</p>
+        {aviso && <p className="text-sm text-coral mb-3">{aviso}</p>}
+        <div className="flex flex-col gap-2">
+          <button
+            type="button"
+            onClick={comprobar}
+            disabled={comprobando}
+            className="rounded-full bg-sea py-3 font-semibold text-white transition-colors hover:bg-sea-deep disabled:opacity-40"
+          >
+            {comprobando ? 'Comprobando…' : 'Ya me han aprobado'}
+          </button>
+          <button type="button" onClick={salir} className="text-sm text-muted hover:text-ink transition-colors">
+            salir
+          </button>
+        </div>
+      </div>
+    </div>
+  )
 }
 
 function Principal() {
   const { miembro, salir } = useSesion()
-  const { reservas, miembros, cargando, error, crearReserva, borrarReserva } = useDatos()
+  const { reservas, miembros, cargando, error, crearReserva, borrarReserva, recargar } = useDatos()
   const [sel, setSel] = useState<Seleccion>({ inicio: null, fin: null })
+  const pendientes = miembros.filter((m) => !m.aprobado)
+  const aprobados = miembros.filter((m) => m.aprobado)
 
   function clickDia(iso: string) {
     setSel((s) => {
@@ -78,9 +138,13 @@ function Principal() {
           </p>
         )}
 
-        {miembros.length > 0 && (
+        {miembro.es_admin && (
+          <Solicitudes admin={miembro} pendientes={pendientes} onCambio={recargar} />
+        )}
+
+        {aprobados.length > 0 && (
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 px-1">
-            {miembros.map((m) => (
+            {aprobados.map((m) => (
               <span key={m.id} className="inline-flex items-center gap-1.5 text-xs text-ink-soft">
                 <span className="size-2.5 rounded-full" style={{ background: m.color }} />
                 {m.nombre}

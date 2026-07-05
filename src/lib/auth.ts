@@ -1,5 +1,12 @@
 import { supabase, supabaseConfigurado } from './supabase'
-import { localLogin, localMiembros, localRegistrar, localRenombrar } from './local'
+import {
+  localAprobar,
+  localLogin,
+  localMiembros,
+  localRechazar,
+  localRegistrar,
+  localRenombrar,
+} from './local'
 import type { Miembro } from '../types'
 
 const CLAVE = 'miramar-sesion'
@@ -21,10 +28,13 @@ export function cerrarSesion(): void {
   localStorage.removeItem(CLAVE)
 }
 
-// List members (names + colors) for the login picker.
+// List members for the login picker.
 export async function listarMiembros(): Promise<Miembro[]> {
   if (!supabaseConfigurado) return localMiembros()
-  const { data } = await supabase.from('miembros').select('id, nombre, color, created_at').order('created_at')
+  const { data } = await supabase
+    .from('miembros')
+    .select('id, nombre, color, es_admin, aprobado, created_at')
+    .order('created_at')
   return (data as Miembro[]) ?? []
 }
 
@@ -48,16 +58,43 @@ export async function renombrar(id: string, pin: string, nuevo: string): Promise
   return fila
 }
 
-// Create a new member with a hashed PIN.
-export async function registrar(nombre: string, pin: string, color: string): Promise<Miembro> {
-  if (!supabaseConfigurado) return localRegistrar(nombre, pin, color)
+// Create a new member with a hashed PIN. The first member may become admin.
+export async function registrar(
+  nombre: string,
+  pin: string,
+  color: string,
+  esAdmin: boolean,
+): Promise<Miembro> {
+  if (!supabaseConfigurado) return localRegistrar(nombre, pin, color, esAdmin)
   const { data, error } = await supabase.rpc('fn_registrar_miembro', {
     p_nombre: nombre,
     p_pin: pin,
     p_color: color,
+    p_es_admin: esAdmin,
   })
   if (error) throw new Error(error.message.replace(/^.*:\s*/, ''))
   const fila = (data as Miembro[])?.[0]
   if (!fila) throw new Error('No se pudo crear el miembro')
   return fila
+}
+
+// Admin actions: approve or reject a pending member (verifies admin PIN).
+export async function aprobarMiembro(adminId: string, adminPin: string, miembroId: string): Promise<void> {
+  if (!supabaseConfigurado) return localAprobar(adminId, adminPin, miembroId)
+  const { error } = await supabase.rpc('fn_aprobar', {
+    p_admin_id: adminId,
+    p_admin_pin: adminPin,
+    p_miembro_id: miembroId,
+  })
+  if (error) throw new Error(error.message.replace(/^.*:\s*/, ''))
+}
+
+export async function rechazarMiembro(adminId: string, adminPin: string, miembroId: string): Promise<void> {
+  if (!supabaseConfigurado) return localRechazar(adminId, adminPin, miembroId)
+  const { error } = await supabase.rpc('fn_rechazar', {
+    p_admin_id: adminId,
+    p_admin_pin: adminPin,
+    p_miembro_id: miembroId,
+  })
+  if (error) throw new Error(error.message.replace(/^.*:\s*/, ''))
 }

@@ -145,11 +145,13 @@ function FormCrear({
   onCreado: (m: Miembro) => void
   onVolver?: () => void
 }) {
+  const esPrimero = miembros.length === 0
   const usados = new Set(miembros.map((m) => m.color.toLowerCase()))
   const primerLibre = PALETA.find((c) => !usados.has(c.toLowerCase())) ?? PALETA[0]
   const [nombre, setNombre] = useState('')
   const [pin, setPin] = useState('')
   const [color, setColor] = useState<string>(primerLibre)
+  const [admin, setAdmin] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [cargando, setCargando] = useState(false)
 
@@ -158,7 +160,7 @@ function FormCrear({
     setError(null)
     setCargando(true)
     try {
-      onCreado(await registrar(nombre, pin, color))
+      onCreado(await registrar(nombre, pin, color, esPrimero && admin))
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error')
     } finally {
@@ -214,6 +216,21 @@ function FormCrear({
           })}
         </div>
       </div>
+
+      {esPrimero && (
+        <label className="flex items-start gap-3 rounded-xl border border-sea/30 bg-sea-soft/50 p-3 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={admin}
+            onChange={(e) => setAdmin(e.target.checked)}
+            className="mt-0.5 size-4 accent-[var(--color-sea)]"
+          />
+          <span className="text-sm text-ink-soft">
+            <b className="text-ink">Soy el administrador.</b> Eres el primero: como admin
+            aprobarás a quien cree una cuenta, para que nadie entre sin tu permiso.
+          </span>
+        </label>
+      )}
 
       {error && <p className="text-sm text-coral">{error}</p>}
 

@@ -2,6 +2,8 @@ export interface Miembro {
   id: string
   nombre: string
   color: string
+  es_admin: boolean
+  aprobado: boolean
   created_at?: string
 }
 

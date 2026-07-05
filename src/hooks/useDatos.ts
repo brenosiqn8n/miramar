@@ -50,7 +50,10 @@ export function useDatos(): Datos {
         return
       }
       const [mRes, rRes] = await Promise.all([
-        supabase.from('miembros').select('id, nombre, color, created_at').order('created_at'),
+        supabase
+          .from('miembros')
+          .select('id, nombre, color, es_admin, aprobado, created_at')
+          .order('created_at'),
         supabase.from('reservas').select('*').order('fecha_inicio', { ascending: true }),
       ])
       if (mRes.error) throw mRes.error
