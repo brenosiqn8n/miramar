@@ -1,13 +1,15 @@
 import { createClient } from '@supabase/supabase-js'
 
-const url = import.meta.env.VITE_SUPABASE_URL as string | undefined
-const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined
+const url = (import.meta.env.VITE_SUPABASE_URL as string | undefined)?.trim()
+const anonKey = (import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined)?.trim()
 
-export const supabaseConfigurado = Boolean(url && anonKey)
+// Valid only if both are present AND the URL is a real https URL (empty strings
+// or a bare value must not reach createClient, which throws and blanks the app).
+export const supabaseConfigurado = Boolean(url && anonKey && /^https?:\/\//.test(url))
 
-// Falls back to harmless placeholders so the app can render a "config missing"
-// screen instead of crashing when env vars aren't set yet.
+// `||` (not `??`) so empty strings also fall back → app renders in local mode
+// instead of crashing with "supabaseUrl is required".
 export const supabase = createClient(
-  url ?? 'https://placeholder.supabase.co',
-  anonKey ?? 'placeholder-anon-key',
+  supabaseConfigurado ? url! : 'https://placeholder.supabase.co',
+  supabaseConfigurado ? anonKey! : 'placeholder-anon-key',
 )
