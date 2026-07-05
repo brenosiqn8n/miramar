@@ -3,7 +3,7 @@
 -- (anon). "Login" is a soft PIN just to attribute reservations to a person; the
 -- pin hash is never exposed to the client (column-level grant + RPC login).
 
-create extension if not exists pgcrypto;
+create extension if not exists pgcrypto with schema extensions;
 
 -- ── Members ────────────────────────────────────────────────────────────────
 create table if not exists miembros (
@@ -49,7 +49,7 @@ create or replace function fn_registrar_miembro(p_nombre text, p_pin text, p_col
 returns table (id uuid, nombre text, color text)
 language plpgsql
 security definer
-set search_path = public
+set search_path = public, extensions
 as $$
 begin
   if exists (select 1 from miembros m where lower(m.nombre) = lower(trim(p_nombre))) then
@@ -69,7 +69,7 @@ create or replace function fn_login(p_nombre text, p_pin text)
 returns table (id uuid, nombre text, color text)
 language sql
 security definer
-set search_path = public
+set search_path = public, extensions
 as $$
   select m.id, m.nombre, m.color
   from miembros m
@@ -82,7 +82,7 @@ create or replace function fn_renombrar(p_id uuid, p_pin text, p_nombre text)
 returns table (id uuid, nombre text, color text)
 language plpgsql
 security definer
-set search_path = public
+set search_path = public, extensions
 as $$
 begin
   if not exists (select 1 from miembros m where m.id = p_id and m.pin_hash = crypt(p_pin, m.pin_hash)) then
