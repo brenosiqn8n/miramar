@@ -172,7 +172,7 @@ function FormCrear({
     <form onSubmit={enviar} className="flex flex-col gap-4">
       <div>
         <Etiqueta>Tu nombre</Etiqueta>
-        <Input value={nombre} onChange={setNombre} placeholder="Ej: Breno" />
+        <Input value={nombre} onChange={setNombre} placeholder="Tu nombre" />
       </div>
       <div>
         <Etiqueta>Elige un PIN (4–6 dígitos)</Etiqueta>
