@@ -52,14 +52,14 @@ export function EditarPerfil({ miembros }: { miembros: Miembro[] }) {
       <button
         type="button"
         onClick={abrir}
-        className="group max-w-[7rem] inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-sm font-medium transition-opacity hover:opacity-80"
+        className="group max-w-[8.5rem] inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-base font-medium transition-opacity hover:opacity-80"
         style={{ background: miembro.color + '22', color: miembro.color }}
       >
         <span className="truncate">{miembro.nombre}</span>
         <svg
           viewBox="0 0 24 24"
-          width="11"
-          height="11"
+          width="13"
+          height="13"
           fill="none"
           stroke="currentColor"
           strokeWidth="2.4"

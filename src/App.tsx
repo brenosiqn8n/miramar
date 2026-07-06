@@ -119,24 +119,24 @@ function Principal() {
   return (
     <div className="min-h-dvh">
       <header className="sticky top-0 z-20 border-b border-line bg-sand/80 backdrop-blur-md">
-        <div className="mx-auto max-w-md px-4 py-2.5 relative flex items-center justify-center">
-          <div className="flex flex-col items-center leading-none">
+        <div className="mx-auto max-w-md px-4 py-2.5 relative flex items-center justify-between gap-2">
+          <EditarPerfil miembros={miembros} />
+
+          <div className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center leading-none">
             <span className="inline-flex items-center gap-1.5 font-mono text-[0.55rem] tracking-[0.28em] uppercase text-faint mb-0.5">
               <Ola />
               piso de playa
             </span>
             <span className="font-display text-2xl text-ink leading-none">Miramar</span>
           </div>
-          <div className="absolute right-3 flex items-center gap-1">
-            <EditarPerfil miembros={miembros} />
-            <button
-              type="button"
-              onClick={salir}
-              className="text-[0.7rem] text-muted hover:text-ink transition-colors"
-            >
-              salir
-            </button>
-          </div>
+
+          <button
+            type="button"
+            onClick={salir}
+            className="shrink-0 text-[0.7rem] text-muted hover:text-ink transition-colors"
+          >
+            salir
+          </button>
         </div>
       </header>
 
