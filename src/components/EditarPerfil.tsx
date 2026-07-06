@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { createPortal } from 'react-dom'
 import { editarPerfil } from '../lib/auth'
 import { useSesion } from '../sesion'
 import { PALETA } from '../lib/colores'
@@ -68,11 +69,12 @@ export function EditarPerfil({ miembros }: { miembros: Miembro[] }) {
         </svg>
       </button>
 
-      {abierto && (
-        <div
-          className="fixed inset-0 z-50 grid place-items-center bg-ink/30 px-5 overflow-y-auto py-10"
-          onClick={() => setAbierto(false)}
-        >
+      {abierto &&
+        createPortal(
+          <div
+            className="fixed inset-0 z-50 grid place-items-center bg-ink/30 px-5 overflow-y-auto py-10"
+            onClick={() => setAbierto(false)}
+          >
           <form
             onClick={(e) => e.stopPropagation()}
             onSubmit={guardar}
@@ -167,8 +169,9 @@ export function EditarPerfil({ miembros }: { miembros: Miembro[] }) {
               </button>
             </div>
           </form>
-        </div>
-      )}
+          </div>,
+          document.body,
+        )}
     </>
   )
 }

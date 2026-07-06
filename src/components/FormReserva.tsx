@@ -37,10 +37,19 @@ export function FormReserva({
     (r) => r.miembro.id !== miembro.id && solapan(inicio, fin, r.fecha_inicio, r.fecha_fin),
   )
 
+  // My OWN reservations that already cover part of this range — block duplicates.
+  const yaTengo = finValido
+    ? reservas.filter((r) => r.miembro.id === miembro.id && solapan(inicio, fin, r.fecha_inicio, r.fecha_fin))
+    : []
+
   async function enviar(e: React.FormEvent) {
     e.preventDefault()
     if (!finValido) {
       setError('La salida no puede ser antes de la entrada.')
+      return
+    }
+    if (yaTengo.length > 0) {
+      setError('Ya tienes esos días reservados.')
       return
     }
     setError(null)
@@ -119,11 +128,15 @@ export function FormReserva({
         </p>
       )}
 
+      {yaTengo.length > 0 && (
+        <p className="mt-2 text-sm text-coral">Ya tienes esos días reservados.</p>
+      )}
+
       {error && <p className="mt-2 text-sm text-coral">{error}</p>}
 
       <button
         type="submit"
-        disabled={enviando || !finValido}
+        disabled={enviando || !finValido || yaTengo.length > 0}
         className="mt-4 w-full rounded-full bg-sea py-3 font-semibold text-white transition-colors hover:bg-sea-deep disabled:opacity-40"
       >
         {enviando ? 'Guardando…' : 'Reservar'}
