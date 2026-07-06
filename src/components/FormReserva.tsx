@@ -112,7 +112,7 @@ export function FormReserva({
           value={nota}
           onChange={(e) => setNota(e.target.value)}
           placeholder="Ej: con los niños, llego por la tarde…"
-          className="w-full rounded-lg border border-line bg-white px-3 py-2 text-sm text-ink outline-none focus:border-sea placeholder:text-faint"
+          className="w-full rounded-lg border border-line bg-white px-3 py-2 text-ink outline-none focus:border-sea placeholder:text-faint"
         />
       </div>
 

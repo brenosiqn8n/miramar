@@ -40,7 +40,7 @@ export function Anuncios({
           onChange={(e) => setTexto(e.target.value)}
           maxLength={280}
           placeholder="Escribe algo para todos…"
-          className="flex-1 min-w-0 rounded-xl border border-line bg-sand px-3.5 py-2.5 text-sm text-ink outline-none focus:border-sea placeholder:text-faint"
+          className="flex-1 min-w-0 rounded-xl border border-line bg-sand px-3.5 py-2.5 text-ink outline-none focus:border-sea placeholder:text-faint"
         />
         <button
           type="submit"
@@ -54,7 +54,11 @@ export function Anuncios({
       {anuncios.length === 0 ? (
         <p className="text-sm text-muted">Sin anuncios. Sé el primero en escribir algo.</p>
       ) : (
-        <ul className="flex flex-col gap-3">
+        <ul
+          className={`flex flex-col gap-3 ${
+            anuncios.length > 1 ? 'max-h-[15rem] overflow-y-auto pr-1 -mr-1' : ''
+          }`}
+        >
           {anuncios.map((a) => {
             const mio = a.miembro.id === miembro.id
             const puedeBorrar = mio || miembro.es_admin
