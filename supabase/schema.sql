@@ -110,7 +110,8 @@ as $$
     and m.pin_hash = crypt(p_pin, m.pin_hash);
 $$;
 
--- Rename a member (requires their PIN). Name must stay unique.
+-- Rename a member (requires their PIN). Name must stay unique. Kept for
+-- backward compatibility; fn_editar_perfil below is the full profile editor.
 drop function if exists fn_renombrar(uuid, text, text);
 create function fn_renombrar(p_id uuid, p_pin text, p_nombre text)
 returns table (id uuid, nombre text, color text, es_admin boolean, aprobado boolean)
@@ -128,6 +129,41 @@ begin
   return query
   update miembros set nombre = trim(p_nombre) where miembros.id = p_id
   returning miembros.id, miembros.nombre, miembros.color, miembros.es_admin, miembros.aprobado;
+end $$;
+
+-- Edit name/color and optionally the PIN in one go. Requires the CURRENT pin.
+-- p_nuevo_pin may be null/empty to leave the PIN unchanged.
+create or replace function fn_editar_perfil(
+  p_id uuid,
+  p_pin text,
+  p_nombre text,
+  p_color text,
+  p_nuevo_pin text default null
+)
+returns table (id uuid, nombre text, color text, es_admin boolean, aprobado boolean)
+language plpgsql
+security definer
+set search_path = public, extensions
+as $$
+begin
+  if not exists (select 1 from miembros m where m.id = p_id and m.pin_hash = crypt(p_pin, m.pin_hash)) then
+    raise exception 'PIN incorrecto';
+  end if;
+  if exists (select 1 from miembros m where lower(m.nombre) = lower(trim(p_nombre)) and m.id <> p_id) then
+    raise exception 'Ese nombre ya existe';
+  end if;
+  if exists (select 1 from miembros m where lower(m.color) = lower(trim(p_color)) and m.id <> p_id) then
+    raise exception 'Ese color ya está cogido';
+  end if;
+  update miembros
+     set nombre   = trim(p_nombre),
+         color    = trim(p_color),
+         pin_hash = case when p_nuevo_pin is not null and length(trim(p_nuevo_pin)) > 0
+                         then crypt(p_nuevo_pin, gen_salt('bf'))
+                         else pin_hash end
+   where miembros.id = p_id;
+  return query
+  select m.id, m.nombre, m.color, m.es_admin, m.aprobado from miembros m where m.id = p_id;
 end $$;
 
 -- Admin-only: approve a pending member. Verifies the admin's PIN.
@@ -167,5 +203,6 @@ end $$;
 grant execute on function fn_registrar_miembro(text, text, text, boolean) to anon;
 grant execute on function fn_login(text, text) to anon;
 grant execute on function fn_renombrar(uuid, text, text) to anon;
+grant execute on function fn_editar_perfil(uuid, text, text, text, text) to anon;
 grant execute on function fn_aprobar(uuid, text, uuid) to anon;
 grant execute on function fn_rechazar(uuid, text, uuid) to anon;

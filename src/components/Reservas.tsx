@@ -19,19 +19,35 @@ export function Reservas({
     [reservas, hoy],
   )
 
-  // For each stay, the OTHER members whose stay overlaps it.
+  // For each stay, the OTHER overlapping reservations (kept whole, not just the
+  // member, so we can compare created_at to know who booked first).
   const coincidenciasDe = useMemo(() => {
-    const map = new Map<string, Miembro[]>()
+    const map = new Map<string, ReservaCompleta[]>()
     for (const r of proximas) {
-      const otros = new Map<string, Miembro>()
+      const otros = new Map<string, ReservaCompleta>()
       for (const o of reservas) {
         if (o.id === r.id || o.miembro.id === r.miembro.id) continue
-        if (solapan(r.fecha_inicio, r.fecha_fin, o.fecha_inicio, o.fecha_fin)) otros.set(o.miembro.id, o.miembro)
+        if (solapan(r.fecha_inicio, r.fecha_fin, o.fecha_inicio, o.fecha_fin)) otros.set(o.miembro.id, o)
       }
       map.set(r.id, [...otros.values()])
     }
     return map
   }, [proximas, reservas])
+
+  // Who booked first within a stay's whole overlap cluster (this row + others).
+  const primeroDe = useMemo(() => {
+    const map = new Map<string, string>() // reserva.id -> miembro_id who was first
+    for (const r of proximas) {
+      const otros = coincidenciasDe.get(r.id) ?? []
+      if (otros.length === 0) continue
+      const cluster = [r, ...otros]
+      const primero = cluster.reduce((a, b) =>
+        (a.created_at ?? '') <= (b.created_at ?? '') ? a : b,
+      )
+      map.set(r.id, primero.miembro.id)
+    }
+    return map
+  }, [proximas, coincidenciasDe])
 
   const hayCoincidencias = [...coincidenciasDe.values()].some((v) => v.length > 0)
 
@@ -58,6 +74,7 @@ export function Reservas({
       <ul className="flex flex-col divide-y divide-line">
         {proximas.map((r) => {
           const otros = coincidenciasDe.get(r.id) ?? []
+          const primeroId = primeroDe.get(r.id)
           const mio = r.miembro.id === miembro.id
           const n = noches(r.fecha_inicio, r.fecha_fin)
           return (
@@ -67,6 +84,11 @@ export function Reservas({
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="font-medium text-ink">{r.miembro.nombre}</span>
                   {mio && <span className="text-[0.65rem] font-mono uppercase tracking-wide text-faint">tú</span>}
+                  {primeroId === r.miembro.id && (
+                    <span className="rounded-full bg-sea-soft px-2 py-0.5 text-[0.65rem] font-medium text-sea-deep">
+                      reservó primero
+                    </span>
+                  )}
                 </div>
                 <div className="text-sm text-ink-soft">
                   {fechaCorta(r.fecha_inicio)} → {fechaCorta(r.fecha_fin)}{' '}
@@ -78,11 +100,12 @@ export function Reservas({
                     <span className="text-xs text-coral font-medium">coincide con</span>
                     {otros.map((o) => (
                       <span
-                        key={o.id}
-                        className="rounded-full px-2 py-0.5 text-xs font-medium"
-                        style={{ background: o.color + '22', color: o.color }}
+                        key={o.miembro.id}
+                        className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium"
+                        style={{ background: o.miembro.color + '22', color: o.miembro.color }}
                       >
-                        {o.nombre}
+                        {o.miembro.nombre}
+                        {primeroId === o.miembro.id && <span title="Reservó primero">★</span>}
                       </span>
                     ))}
                   </div>

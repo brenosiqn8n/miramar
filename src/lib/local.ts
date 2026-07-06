@@ -112,6 +112,29 @@ export function localRenombrar(id: string, pin: string, nuevo: string): Miembro 
   return publico(yo)
 }
 
+export function localEditarPerfil(
+  id: string,
+  pin: string,
+  nombre: string,
+  color: string,
+  nuevoPin?: string,
+): Miembro {
+  const ms = leer<MiembroLocal>(K_MIEMBROS)
+  const yo = ms.find((m) => m.id === id)
+  if (!yo || yo.pin !== pin) throw new Error('PIN incorrecto')
+  if (ms.some((m) => m.id !== id && m.nombre.toLowerCase() === nombre.trim().toLowerCase())) {
+    throw new Error('Ese nombre ya existe')
+  }
+  if (ms.some((m) => m.id !== id && m.color.toLowerCase() === color.toLowerCase())) {
+    throw new Error('Ese color ya está cogido')
+  }
+  yo.nombre = nombre.trim()
+  yo.color = color
+  if (nuevoPin && nuevoPin.trim()) yo.pin = nuevoPin.trim()
+  escribir(K_MIEMBROS, ms)
+  return publico(yo)
+}
+
 export function localCrearReserva(r: {
   miembro_id: string
   fecha_inicio: string

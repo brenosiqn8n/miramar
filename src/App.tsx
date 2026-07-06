@@ -7,7 +7,7 @@ import { Calendario, type Seleccion } from './components/Calendario'
 import { FormReserva } from './components/FormReserva'
 import { Reservas } from './components/Reservas'
 import { Historial } from './components/Historial'
-import { EditarNombre } from './components/EditarNombre'
+import { EditarPerfil } from './components/EditarPerfil'
 import { Solicitudes } from './components/Solicitudes'
 import { Anuncios } from './components/Anuncios'
 import { listarMiembros } from './lib/auth'
@@ -128,13 +128,7 @@ function Principal() {
             <span className="font-display text-2xl text-ink leading-none">Miramar</span>
           </div>
           <div className="absolute right-3 flex items-center gap-1">
-            <span
-              className="max-w-[6.5rem] truncate rounded-full px-2.5 py-1 text-sm font-medium"
-              style={{ background: miembro.color + '22', color: miembro.color }}
-            >
-              {miembro.nombre}
-            </span>
-            <EditarNombre />
+            <EditarPerfil miembros={miembros} />
             <button
               type="button"
               onClick={salir}
@@ -202,10 +196,6 @@ function Principal() {
           </>
         )}
 
-        <p className="text-center text-xs text-faint pt-2">
-          Los días con <span className="text-coral font-medium">número en rojo</span> tienen varias
-          personas. Hablad para ir juntos o decidid quién se queda.
-        </p>
       </main>
     </div>
   )

@@ -1,6 +1,7 @@
 import { supabase, supabaseConfigurado } from './supabase'
 import {
   localAprobar,
+  localEditarPerfil,
   localLogin,
   localMiembros,
   localRechazar,
@@ -55,6 +56,29 @@ export async function renombrar(id: string, pin: string, nuevo: string): Promise
   if (error) throw new Error(error.message.replace(/^.*:\s*/, ''))
   const fila = (data as Miembro[])?.[0]
   if (!fila) throw new Error('No se pudo cambiar el nombre')
+  return fila
+}
+
+// Full profile edit: name, color, and optionally a new PIN. Requires the
+// current PIN. Pass an empty nuevoPin to leave the PIN unchanged.
+export async function editarPerfil(
+  id: string,
+  pin: string,
+  nombre: string,
+  color: string,
+  nuevoPin?: string,
+): Promise<Miembro> {
+  if (!supabaseConfigurado) return localEditarPerfil(id, pin, nombre, color, nuevoPin)
+  const { data, error } = await supabase.rpc('fn_editar_perfil', {
+    p_id: id,
+    p_pin: pin,
+    p_nombre: nombre,
+    p_color: color,
+    p_nuevo_pin: nuevoPin?.trim() || null,
+  })
+  if (error) throw new Error(error.message.replace(/^.*:\s*/, ''))
+  const fila = (data as Miembro[])?.[0]
+  if (!fila) throw new Error('No se pudo actualizar el perfil')
   return fila
 }
 
