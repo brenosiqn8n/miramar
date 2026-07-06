@@ -7,13 +7,9 @@ export function Historial({ reservas }: { reservas: ReservaCompleta[] }) {
   const [abierto, setAbierto] = useState(false)
   const hoy = hoyISO()
 
+  // Ordered by the stay date (fecha_inicio), newest first — not by when it was booked.
   const orden = useMemo(
-    () =>
-      [...reservas].sort((a, b) => {
-        const ca = a.created_at ?? a.fecha_inicio
-        const cb = b.created_at ?? b.fecha_inicio
-        return cb.localeCompare(ca)
-      }),
+    () => [...reservas].sort((a, b) => b.fecha_inicio.localeCompare(a.fecha_inicio)),
     [reservas],
   )
 

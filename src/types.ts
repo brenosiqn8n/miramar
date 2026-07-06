@@ -20,3 +20,14 @@ export interface Reserva {
 export interface ReservaCompleta extends Reserva {
   miembro: Miembro
 }
+
+export interface Anuncio {
+  id: string
+  miembro_id: string
+  texto: string
+  created_at: string
+}
+
+export interface AnuncioCompleto extends Anuncio {
+  miembro: Miembro
+}

@@ -50,6 +50,19 @@ alter table reservas enable row level security;
 drop policy if exists reservas_all on reservas;
 create policy reservas_all on reservas for all to anon using (true) with check (true);
 
+-- ── Announcements board ─────────────────────────────────────────────────────
+create table if not exists anuncios (
+  id         uuid primary key default gen_random_uuid(),
+  miembro_id uuid not null references miembros(id) on delete cascade,
+  texto      text not null,
+  created_at timestamptz not null default now()
+);
+create index if not exists idx_anuncios_fecha on anuncios (created_at desc);
+
+alter table anuncios enable row level security;
+drop policy if exists anuncios_all on anuncios;
+create policy anuncios_all on anuncios for all to anon using (true) with check (true);
+
 -- ── Auth RPCs (security definer → bypass RLS, hash never leaves the DB) ──────
 
 -- Register a member. The FIRST member is auto-approved and may become admin;

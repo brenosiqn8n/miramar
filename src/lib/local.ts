@@ -1,11 +1,12 @@
 // Local (no-backend) mode. Used when Supabase env vars are missing so the app is
 // fully testable offline. Data lives in localStorage on THIS browser only.
-import type { Miembro, Reserva } from '../types'
+import type { Anuncio, Miembro, Reserva } from '../types'
 
 type MiembroLocal = Miembro & { pin: string }
 
 const K_MIEMBROS = 'miramar-local-miembros'
 const K_RESERVAS = 'miramar-local-reservas'
+const K_ANUNCIOS = 'miramar-local-anuncios'
 const EVENTO = 'miramar-local-change'
 
 function leer<T>(clave: string): T[] {
@@ -126,4 +127,20 @@ export function localCrearReserva(r: {
 
 export function localBorrarReserva(id: string): void {
   escribir(K_RESERVAS, leer<Reserva>(K_RESERVAS).filter((r) => r.id !== id))
+}
+
+export function localAnuncios(): Anuncio[] {
+  return leer<Anuncio>(K_ANUNCIOS)
+}
+
+export function localCrearAnuncio(miembroId: string, texto: string): void {
+  const as = leer<Anuncio>(K_ANUNCIOS)
+  escribir(K_ANUNCIOS, [
+    { id: crypto.randomUUID(), miembro_id: miembroId, texto, created_at: new Date().toISOString() },
+    ...as,
+  ])
+}
+
+export function localBorrarAnuncio(id: string): void {
+  escribir(K_ANUNCIOS, leer<Anuncio>(K_ANUNCIOS).filter((a) => a.id !== id))
 }

@@ -9,11 +9,20 @@ import { Reservas } from './components/Reservas'
 import { Historial } from './components/Historial'
 import { EditarNombre } from './components/EditarNombre'
 import { Solicitudes } from './components/Solicitudes'
+import { Anuncios } from './components/Anuncios'
 import { listarMiembros } from './lib/auth'
 import { useEffect } from 'react'
 
 export default function App() {
   return <Puerta />
+}
+
+function Ola() {
+  return (
+    <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.2">
+      <path d="M2 15c2 0 2-2 4-2s2 2 4 2 2-2 4-2 2 2 4 2 2-2 4-2" strokeLinecap="round" />
+    </svg>
+  )
 }
 
 function Puerta() {
@@ -79,7 +88,18 @@ function Pendiente() {
 
 function Principal() {
   const { miembro, salir } = useSesion()
-  const { reservas, miembros, cargando, error, crearReserva, borrarReserva, recargar } = useDatos()
+  const {
+    reservas,
+    miembros,
+    anuncios,
+    cargando,
+    error,
+    crearReserva,
+    borrarReserva,
+    crearAnuncio,
+    borrarAnuncio,
+    recargar,
+  } = useDatos()
   const [sel, setSel] = useState<Seleccion>({ inicio: null, fin: null })
   const pendientes = miembros.filter((m) => !m.aprobado)
   const aprobados = miembros.filter((m) => m.aprobado)
@@ -99,16 +119,17 @@ function Principal() {
   return (
     <div className="min-h-dvh">
       <header className="sticky top-0 z-20 border-b border-line bg-sand/80 backdrop-blur-md">
-        <div className="mx-auto max-w-md px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="font-display text-2xl text-ink leading-none">Miramar</span>
-            <span className="hidden sm:block font-mono text-[0.6rem] tracking-[0.25em] uppercase text-faint">
+        <div className="mx-auto max-w-md px-4 py-2.5 relative flex items-center justify-center">
+          <div className="flex flex-col items-center leading-none">
+            <span className="inline-flex items-center gap-1.5 font-mono text-[0.55rem] tracking-[0.28em] uppercase text-faint mb-0.5">
+              <Ola />
               piso de playa
             </span>
+            <span className="font-display text-2xl text-ink leading-none">Miramar</span>
           </div>
-          <div className="flex items-center gap-1.5">
+          <div className="absolute right-3 flex items-center gap-1">
             <span
-              className="rounded-full px-3 py-1 text-sm font-medium"
+              className="max-w-[6.5rem] truncate rounded-full px-2.5 py-1 text-sm font-medium"
               style={{ background: miembro.color + '22', color: miembro.color }}
             >
               {miembro.nombre}
@@ -117,7 +138,7 @@ function Principal() {
             <button
               type="button"
               onClick={salir}
-              className="text-xs text-muted hover:text-ink transition-colors"
+              className="text-[0.7rem] text-muted hover:text-ink transition-colors"
             >
               salir
             </button>
@@ -141,6 +162,13 @@ function Principal() {
         {miembro.es_admin && (
           <Solicitudes admin={miembro} pendientes={pendientes} onCambio={recargar} />
         )}
+
+        <Anuncios
+          anuncios={anuncios}
+          miembro={miembro}
+          onCrear={(t) => crearAnuncio(miembro.id, t)}
+          onBorrar={borrarAnuncio}
+        />
 
         {aprobados.length > 0 && (
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 px-1">
@@ -176,7 +204,7 @@ function Principal() {
 
         <p className="text-center text-xs text-faint pt-2">
           Los días con <span className="text-coral font-medium">número en rojo</span> tienen varias
-          personas. Hablad para ir juntos o decidir quién se queda.
+          personas. Hablad para ir juntos o decidid quién se queda.
         </p>
       </main>
     </div>

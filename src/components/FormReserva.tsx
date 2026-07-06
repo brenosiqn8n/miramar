@@ -63,7 +63,7 @@ export function FormReserva({
       </div>
 
       <div className="grid grid-cols-2 gap-3">
-        <label className="block">
+        <label className="block min-w-0">
           <span className="mb-1 block text-xs font-medium text-muted">Entrada</span>
           <input
             type="date"
@@ -72,17 +72,17 @@ export function FormReserva({
               setInicio(e.target.value)
               if (fin < e.target.value) setFin(e.target.value)
             }}
-            className="w-full rounded-xl border border-line bg-sand px-3 py-2.5 text-ink outline-none focus:border-sea"
+            className="block w-full min-w-0 appearance-none rounded-xl border border-line bg-sand px-3 py-2.5 text-ink outline-none focus:border-sea"
           />
         </label>
-        <label className="block">
+        <label className="block min-w-0">
           <span className="mb-1 block text-xs font-medium text-muted">Salida</span>
           <input
             type="date"
             value={fin}
             min={inicio}
             onChange={(e) => setFin(e.target.value)}
-            className="w-full rounded-xl border border-line bg-sand px-3 py-2.5 text-ink outline-none focus:border-sea"
+            className="block w-full min-w-0 appearance-none rounded-xl border border-line bg-sand px-3 py-2.5 text-ink outline-none focus:border-sea"
           />
         </label>
       </div>

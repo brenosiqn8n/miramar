@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import { hoyISO, matrizMes, nombreMes } from '../lib/fechas'
+import { textoSobre } from '../lib/colores'
 import type { Miembro, ReservaCompleta } from '../types'
 
 const DOW = ['L', 'M', 'X', 'J', 'V', 'S', 'D']
@@ -183,19 +184,24 @@ function MesGrande({
           const esHoy = iso === hoy
           const rango = enRango(iso)
           const extremo = esExtremo(iso)
+          const seleccionSolapa = rango && ms.length > 0 // picking days that already have someone
           return (
             <button
               key={iso}
               type="button"
               onClick={() => onDia(iso)}
               className={`relative aspect-square rounded-xl border p-1 text-left transition-colors ${
-                extremo
-                  ? 'border-sea bg-sea-soft'
-                  : rango
-                    ? 'border-sea/30 bg-sea-soft/60'
-                    : solapa
-                      ? 'border-coral/50 bg-coral-soft/50'
-                      : 'border-transparent hover:border-line'
+                extremo && seleccionSolapa
+                  ? 'border-coral bg-coral-soft'
+                  : seleccionSolapa
+                    ? 'border-coral/60 bg-coral-soft/70'
+                    : extremo
+                      ? 'border-sea bg-sea-soft'
+                      : rango
+                        ? 'border-sea/30 bg-sea-soft/60'
+                        : solapa
+                          ? 'border-coral/50 bg-coral-soft/50'
+                          : 'border-transparent hover:border-line'
               } ${delMes ? '' : 'opacity-35'}`}
             >
               <span
@@ -249,28 +255,21 @@ function MiniMes({
           const solapa = ms.length >= 2
           const esHoy = iso === hoy
           if (!delMes) return <span key={iso} />
+          const reservado = ms.length > 0
+          const fondo = reservado ? (solapa ? 'var(--color-coral)' : ms[0].color) : undefined
+          const texto = reservado ? textoSobre(solapa ? '#e26d5c' : ms[0].color) : undefined
           return (
             <button
               key={iso}
               type="button"
               onClick={() => onDia(iso)}
-              className="relative grid place-items-center aspect-square rounded-md text-[0.6rem] transition-colors hover:bg-sand-2"
-              style={{ background: solapa ? 'var(--color-coral-soft)' : undefined }}
+              className={`grid place-items-center aspect-square rounded-md text-[0.6rem] transition-colors ${
+                reservado ? '' : 'text-ink-soft hover:bg-sand-2'
+              } ${esHoy && !reservado ? 'ring-1 ring-ink' : ''}`}
+              style={reservado ? { background: fondo, color: texto } : undefined}
               title={ms.map((m) => m.nombre).join(', ')}
             >
-              <span
-                className={`grid place-items-center size-4 rounded-full ${
-                  esHoy ? 'bg-ink text-white' : 'text-ink-soft'
-                }`}
-              >
-                {Number(iso.slice(8, 10))}
-              </span>
-              {ms.length > 0 && (
-                <span
-                  className="absolute bottom-0.5 h-1 w-1 rounded-full"
-                  style={{ background: solapa ? 'var(--color-coral)' : ms[0].color }}
-                />
-              )}
+              {Number(iso.slice(8, 10))}
             </button>
           )
         })}
