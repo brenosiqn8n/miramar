@@ -56,7 +56,7 @@ export function Anuncios({
       ) : (
         <ul
           className={`flex flex-col gap-3 ${
-            anuncios.length > 1 ? 'max-h-[15rem] overflow-y-auto pr-1 -mr-1' : ''
+            anuncios.length > 1 ? 'max-h-[7rem] overflow-y-auto pr-1 -mr-1' : ''
           }`}
         >
           {anuncios.map((a) => {
